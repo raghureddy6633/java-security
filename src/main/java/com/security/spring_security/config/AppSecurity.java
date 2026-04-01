@@ -21,6 +21,10 @@ public class AppSecurity {
     @Autowired
     private DataSource dataSource;
 
+    /* customizing the UserDetailsManager instead of jdbcUserDetailsManager and InMemoryUserDetailsManager due
+    to we dont have over table creation and roles management.
+    if we want to create our own tables w need to create our own custom userDetailsService
+    */
     @Bean
     UserDetailsService userDetailsService(){
     return new JdbcUserDetailsManager(dataSource);
@@ -33,11 +37,12 @@ public class AppSecurity {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .authorizeHttpRequests(req -> req.
-                        requestMatchers("/v2/admin").hasRole("ADMIN")
+                .authorizeHttpRequests(req ->
+                        req
+                        .requestMatchers("/v2/admin").hasRole("ADMIN")
                         .requestMatchers( "/v2/normal").hasRole("USER")
                         .requestMatchers("/v2/guest").permitAll())
                 .httpBasic(Customizer.withDefaults())
