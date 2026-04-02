@@ -1,25 +1,26 @@
 package com.security.spring_security.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.security.spring_security.helper.JavaExpressUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
-import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 public class AppSecurity {
 
-    @Autowired
-    private DataSource dataSource;
+
 
     /* customizing the UserDetailsManager instead of jdbcUserDetailsManager and InMemoryUserDetailsManager due
     to we dont have over table creation and roles management.
@@ -27,7 +28,7 @@ public class AppSecurity {
     */
     @Bean
     UserDetailsService userDetailsService(){
-    return new JdbcUserDetailsManager(dataSource);
+    return new JavaExpressUserDetailsService();
     }
 
     @Bean
@@ -37,7 +38,7 @@ public class AppSecurity {
 
 
     @Bean
-     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+     SecurityFilterChain securityFilterChain(HttpSecurity http) {
 
         http
                 .csrf(obj->obj.disable()) // disabiling the security for post, put, delete request
@@ -50,6 +51,19 @@ public class AppSecurity {
                 .formLogin(Customizer.withDefaults());
         return http.build();
 
+    }
+
+    @Bean
+    AuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService());
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
+
+    @Bean
+    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration){
+        return configuration.getAuthenticationManager();
     }
 
 }
