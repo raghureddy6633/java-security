@@ -40,11 +40,12 @@ public class AppSecurity {
      SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                .csrf(obj->obj.disable()) // disabiling the security for post, put, delete request
                 .authorizeHttpRequests(req ->
                         req
                         .requestMatchers("/v2/admin").hasRole("ADMIN")
                         .requestMatchers( "/v2/normal").hasRole("USER")
-                        .requestMatchers("/v2/guest").permitAll())
+                        .requestMatchers("/v2/guest","/api/user/create").permitAll())
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(Customizer.withDefaults());
         return http.build();
